@@ -7,10 +7,10 @@ Comments and queries to: richard-gordon.davison AT ncl.ac.uk
 https://research.ncl.ac.uk/game/
 */
 #pragma once
-#include "../../Common/RendererBase.h"
+#include "RendererBase.h"
 
-#include "../../Common/Vector3.h"
-#include "../../Common/Vector4.h"
+#include "Vector3.h"
+#include "Vector4.h"
 
 
 #ifdef _WIN32
@@ -62,8 +62,8 @@ namespace NCL {
 			void DrawString(const std::string& text, const Vector2&pos, const Vector4& colour = Vector4(0.75f, 0.75f, 0.75f,1), float size = 20.0f );
 			void DrawLine(const Vector3& start, const Vector3& end, const Vector4& colour);
 
-			virtual Matrix4 SetupDebugLineMatrix()	const;
-			virtual Matrix4 SetupDebugStringMatrix()const;
+			//virtual Matrix4 SetupDebugLineMatrix()	const;
+			//virtual Matrix4 SetupDebugStringMatrix()const;
 
 		protected:			
 			void BeginFrame()	override;
@@ -86,29 +86,28 @@ namespace NCL {
 			HGLRC	renderContext;		//Permanent Rendering Context		
 #endif
 		private:
-			struct DebugString {
-				Maths::Vector4 colour;
-				Maths::Vector2	pos;
-				float			size;
-				std::string		text;
-			};
+			//struct DebugString {
+			//	Maths::Vector4 colour;
+			//	Maths::Vector2	pos;
+			//	float			size;
+			//	std::string		text;
+			//};
 
-			struct DebugLine {
-				Maths::Vector3 start;
-				Maths::Vector3 end;
-				Maths::Vector4 colour;
-			};
+			//struct DebugLine {
+			//	Maths::Vector3 start;
+			//	Maths::Vector3 end;
+			//	Maths::Vector4 colour;
+			//};
 
-			OGLMesh* debugLinesMesh;
-			OGLMesh* debugTextMesh;
+			//OGLMesh* debugLinesMesh;
+			//OGLMesh* debugTextMesh;
 
 			OGLMesh*	boundMesh;
 			OGLShader*	boundShader;
 
-			OGLShader*  debugShader;
-			SimpleFont* font;
-			std::vector<DebugString>	debugStrings;
-			std::vector<DebugLine>		debugLines;
+			//OGLShader*  debugShader;		
+			//std::vector<DebugString>	debugStrings;
+			//std::vector<DebugLine>		debugLines;
 
 			bool initState;
 			bool forceValidDebugState;

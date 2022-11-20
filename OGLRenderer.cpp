@@ -11,22 +11,20 @@ https://research.ncl.ac.uk/game/
 #include "OGLMesh.h"
 #include "OGLTexture.h"
 
-#include "../../Common/SimpleFont.h"
-#include "../../Common/TextureLoader.h"
+#include "SimpleFont.h"
+#include "TextureLoader.h"
 
-#include "../../Common/Vector2.h"
-#include "../../Common/Vector3.h"
-#include "../../Common/Matrix4.h"
+#include "Vector2.h"
+#include "Vector3.h"
+#include "Matrix4.h"
 
-#include "../../Common/MeshGeometry.h"
+#include "MeshGeometry.h"
 
 #ifdef _WIN32
-#include "../../Common/Win32Window.h"
+#include "Win32Window.h"
 
 #include "KHR\khrplatform.h"
-#include "glad\glad.h"
-
-#include "GL/GL.h"
+#include "glad\gl.h"
 #include "KHR/WGLext.h"
 
 PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = NULL;
@@ -47,59 +45,26 @@ OGLRenderer::OGLRenderer(Window& w) : RendererBase(w)	{
 	boundMesh	= nullptr;
 	boundShader = nullptr;
 
-	currentWidth	= (int)w.GetScreenSize().x;
-	currentHeight	= (int)w.GetScreenSize().y;
+	windowWidth	= (int)w.GetScreenSize().x;
+	windowHeight	= (int)w.GetScreenSize().y;
 
 	if (initState) {
 		TextureLoader::RegisterAPILoadFunction(OGLTexture::RGBATextureFromFilename);
-
-		font = new SimpleFont("PressStart2P.fnt", "PressStart2P.png");
-
-		OGLTexture* t = (OGLTexture*)font->GetTexture();
-
-		if (t) {
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, t->GetObjectID());
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glBindTexture(GL_TEXTURE_2D, 0);
-		}
-		glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-		debugShader = new OGLShader("debugVert.glsl", "debugFrag.glsl");
 	}
 
 	forceValidDebugState = false;
-
-	debugLinesMesh		= new OGLMesh();
-	debugTextMesh		= new OGLMesh();
-
-
-	debugLinesMesh->SetVertexPositions(std::vector<Vector3>(50000, Vector3()));
-	debugLinesMesh->SetVertexColours(std::vector<Vector4>(50000, Vector3()));
-
-	debugTextMesh->SetVertexPositions(std::vector<Vector3>(5000, Vector3()));
-	debugTextMesh->SetVertexColours(std::vector<Vector4>(5000, Vector3()));
-	debugTextMesh->SetVertexTextureCoords(std::vector<Vector2>(5000, Vector3()));
-
-	debugTextMesh->UploadToGPU();
-	debugLinesMesh->UploadToGPU();
-
-	debugLinesMesh->SetPrimitiveType(GeometryPrimitive::Lines);
 }
 
 OGLRenderer::~OGLRenderer()	{
-	delete font;
-	delete debugShader;
-
 #ifdef _WIN32
 	DestroyWithWin32();
 #endif
 }
 
 void OGLRenderer::OnWindowResize(int w, int h)	 {
-	currentWidth	= w;
-	currentHeight	= h;
-	glViewport(0, 0, currentWidth, currentHeight);
+	windowWidth	= w;
+	windowHeight	= h;
+	glViewport(0, 0, windowWidth, windowHeight);
 }
 
 void OGLRenderer::BeginFrame()		{
@@ -114,7 +79,6 @@ void OGLRenderer::RenderFrame()		{
 }
 
 void OGLRenderer::EndFrame()		{
-	DrawDebugData();
 }
 
 void OGLRenderer::SwapBuffers()   {
@@ -222,111 +186,27 @@ void OGLRenderer::BindTextureToShader(const TextureBase*t, const std::string& un
 	glUniform1i(slot, texUnit);
 }
 
-void OGLRenderer::DrawString(const std::string& text, const Vector2&pos, const Vector4& colour, float size) {
-	DebugString s;
-	s.colour	= colour;
-	s.pos		= pos;
-	s.size		= size;
-	s.text		= text;
-	debugStrings.emplace_back(s);
-}
-
-void OGLRenderer::DrawLine(const Vector3& start, const Vector3& end, const Vector4& colour) {
-	DebugLine l;
-	l.start		= start;
-	l.end		= end;
-	l.colour	= colour;
-	debugLines.emplace_back(l);
-}
-
-Matrix4 OGLRenderer::SetupDebugLineMatrix() const {
-	return Matrix4();
-}
-Matrix4 OGLRenderer::SetupDebugStringMatrix()const {
-	return Matrix4();
-}
-
-void OGLRenderer::DrawDebugData() {
-	if (debugStrings.empty() && debugLines.empty()) {
-		return; //don't mess with OGL state if there's no point!
-	}
-	BindShader(debugShader);
-
-	if (forceValidDebugState) {
-		glEnable(GL_BLEND);
-		glDisable(GL_DEPTH_TEST);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	}
-
-	int matLocation		= glGetUniformLocation(debugShader->GetProgramID(), "viewProjMatrix");
-	Matrix4 pMat;
-
-	BindTextureToShader(font->GetTexture(), "mainTex", 0);
-
-	GLuint texSlot = glGetUniformLocation(boundShader->programID, "useTexture");
-
-	if (debugLines.size() > 0) {
-		pMat = SetupDebugLineMatrix();
-		glUniformMatrix4fv(matLocation, 1, false, pMat.array);
-		glUniform1i(texSlot, 0);
-		DrawDebugLines();
-	}
-
-	if (debugStrings.size() > 0) {
-		pMat = SetupDebugStringMatrix();
-		glUniformMatrix4fv(matLocation, 1, false, pMat.array);
-		glUniform1i(texSlot, 1);
-		DrawDebugStrings();
-	}
-
-	if (forceValidDebugState) {
-		glDisable(GL_BLEND);
-		glEnable(GL_DEPTH_TEST);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	}
-}
-
-void OGLRenderer::DrawDebugStrings() {
-	vector<Vector3> vertPos;
-	vector<Vector2> vertTex;
-	vector<Vector4> vertColours;
-
-	for (DebugString&s : debugStrings) {
-		font->BuildVerticesForString(s.text, s.pos, s.colour, s.size, vertPos, vertTex, vertColours);
-	}
-
-	debugTextMesh->SetVertexPositions(vertPos);
-	debugTextMesh->SetVertexTextureCoords(vertTex);
-	debugTextMesh->SetVertexColours(vertColours);
-	debugTextMesh->UpdateGPUBuffers(0, vertPos.size());
-
-	BindMesh(debugTextMesh);
-	DrawBoundMesh();
-
-	debugStrings.clear();
-}
-
-void OGLRenderer::DrawDebugLines() {
-	vector<Vector3> vertPos;
-	vector<Vector4> vertCol;
-
-	for (DebugLine&s : debugLines) {
-		vertPos.emplace_back(s.start);
-		vertPos.emplace_back(s.end);
-
-		vertCol.emplace_back(s.colour);
-		vertCol.emplace_back(s.colour);
-	}
-
-	debugLinesMesh->SetVertexPositions(vertPos);
-	debugLinesMesh->SetVertexColours(vertCol);
-	debugLinesMesh->UpdateGPUBuffers(0, vertPos.size());
-
-	BindMesh(debugLinesMesh);
-	DrawBoundMesh();
-
-	debugLines.clear();
-}
+//void OGLRenderer::DrawDebugLines() {
+//	vector<Vector3> vertPos;
+//	vector<Vector4> vertCol;
+//
+//	for (DebugLine&s : debugLines) {
+//		vertPos.emplace_back(s.start);
+//		vertPos.emplace_back(s.end);
+//
+//		vertCol.emplace_back(s.colour);
+//		vertCol.emplace_back(s.colour);
+//	}
+//
+//	debugLinesMesh->SetVertexPositions(vertPos);
+//	debugLinesMesh->SetVertexColours(vertCol);
+//	debugLinesMesh->UpdateGPUBuffers(0, (unsigned int)vertPos.size());
+//
+//	BindMesh(debugLinesMesh);
+//	DrawBoundMesh();
+//
+//	debugLines.clear();
+//}
 
 #ifdef _WIN32
 void OGLRenderer::InitWithWin32(Window& w) {
@@ -373,7 +253,7 @@ void OGLRenderer::InitWithWin32(Window& w) {
 		wglDeleteContext(tempContext);
 		return;
 	}
-	if (!gladLoadGL()) {
+	if (!gladLoaderLoadGL()) {
 		std::cout << __FUNCTION__ << " Cannot initialise GLAD!" << std::endl;	//It's all gone wrong!
 		return;
 	}
@@ -428,7 +308,7 @@ void OGLRenderer::InitWithWin32(Window& w) {
 #ifdef OPENGL_DEBUGGING
 	glDebugMessageCallback(DebugCallback, NULL);
 	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, GL_FALSE);
-	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
+	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 #endif
 
 	//If we get this far, everything's going well!
@@ -450,9 +330,9 @@ bool OGLRenderer::SetVerticalSync(VerticalSyncState s) {
 	GLuint state;
 
 	switch (s) {
-		case VerticalSyncState::Off:		state =  0; break;
-		case VerticalSyncState::On:		state =  1; break;
-		case VerticalSyncState::Adaptive:	state = -1; break;
+		case VerticalSyncState::VSync_OFF:		state =  0; break;
+		case VerticalSyncState::VSync_ON:		state =  1; break;
+		case VerticalSyncState::VSync_ADAPTIVE:	state = -1; break;
 	}
 
 	return wglSwapIntervalEXT(state);
@@ -466,27 +346,27 @@ static void APIENTRY DebugCallback(GLenum source, GLenum type, GLuint id, GLenum
 	string severityName;
 
 	switch (source) {
-	case GL_DEBUG_SOURCE_API_ARB: sourceName = "Source(OpenGL)"; break;
-	case GL_DEBUG_SOURCE_WINDOW_SYSTEM_ARB: sourceName = "Source(Window System)"; break;
-	case GL_DEBUG_SOURCE_SHADER_COMPILER_ARB: sourceName = "Source(Shader Compiler)"; break;
-	case GL_DEBUG_SOURCE_THIRD_PARTY_ARB: sourceName = "Source(Third Party)"; break;
-	case GL_DEBUG_SOURCE_APPLICATION_ARB: sourceName = "Source(Application)"; break;
-	case GL_DEBUG_SOURCE_OTHER_ARB: sourceName = "Source(Other)"; break;
+	case GL_DEBUG_SOURCE_API: sourceName = "Source(OpenGL)"; break;
+	case GL_DEBUG_SOURCE_WINDOW_SYSTEM: sourceName = "Source(Window System)"; break;
+	case GL_DEBUG_SOURCE_SHADER_COMPILER: sourceName = "Source(Shader Compiler)"; break;
+	case GL_DEBUG_SOURCE_THIRD_PARTY: sourceName = "Source(Third Party)"; break;
+	case GL_DEBUG_SOURCE_APPLICATION: sourceName = "Source(Application)"; break;
+	case GL_DEBUG_SOURCE_OTHER: sourceName = "Source(Other)"; break;
 	}
 
 	switch (type) {
-	case GL_DEBUG_TYPE_ERROR_ARB: typeName = "Type(Error)"; break;
-	case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR_ARB: typeName = "Type(Deprecated Behaviour)"; break;
-	case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR_ARB: typeName = "Type(Undefined Behaviour)"; break;
-	case GL_DEBUG_TYPE_PORTABILITY_ARB: typeName = "Type(Portability)"; break;
-	case GL_DEBUG_TYPE_PERFORMANCE_ARB: typeName = "Type(Performance)"; break;
-	case GL_DEBUG_TYPE_OTHER_ARB: typeName = "Type(Other)"; break;
+	case GL_DEBUG_TYPE_ERROR: typeName = "Type(Error)"; break;
+	case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: typeName = "Type(Deprecated Behaviour)"; break;
+	case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: typeName = "Type(Undefined Behaviour)"; break;
+	case GL_DEBUG_TYPE_PORTABILITY: typeName = "Type(Portability)"; break;
+	case GL_DEBUG_TYPE_PERFORMANCE: typeName = "Type(Performance)"; break;
+	case GL_DEBUG_TYPE_OTHER: typeName = "Type(Other)"; break;
 	}
 
 	switch (severity) {
-	case GL_DEBUG_SEVERITY_HIGH_ARB: severityName = "Priority(High)"; break;
-	case GL_DEBUG_SEVERITY_MEDIUM_ARB: severityName = "Priority(Medium)"; break;
-	case GL_DEBUG_SEVERITY_LOW_ARB: severityName = "Priority(Low)"; break;
+	case GL_DEBUG_SEVERITY_HIGH: severityName = "Priority(High)"; break;
+	case GL_DEBUG_SEVERITY_MEDIUM: severityName = "Priority(Medium)"; break;
+	case GL_DEBUG_SEVERITY_LOW: severityName = "Priority(Low)"; break;
 	}
 
 	std::cout << "OpenGL Debug Output: " + sourceName + ", " + typeName + ", " + severityName + ", " + string(message) << std::endl;
