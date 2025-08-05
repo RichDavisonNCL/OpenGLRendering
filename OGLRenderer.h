@@ -36,7 +36,7 @@ namespace NCL::Rendering {
 
 		void OnWindowResize(int w, int h)	override;
 		bool HasInitialised()				const override {
-			return initState;
+			return m_initState;
 		}
 
 		virtual bool SetVerticalSync(VerticalSyncState s);
@@ -47,7 +47,7 @@ namespace NCL::Rendering {
 		void EndFrame()		override;
 		void SwapBuffers()  override;
 
-		void UseShader(const OGLShader& s);
+		void BindShader(const OGLShader& s);
 		void BindTextureToShader(const OGLTexture& t, const std::string& uniform, int texUnit) const;
 		void BindMesh(const OGLMesh& m);
 		void BindBufferAsUBO(const OGLBuffer& b, uint32_t slotID);
@@ -57,13 +57,13 @@ namespace NCL::Rendering {
 #ifdef _WIN32
 		void InitWithWin32(Window& w);
 		void DestroyWithWin32();
-		HDC		deviceContext;		//...Device context?
-		HGLRC	renderContext;		//Permanent Rendering Context		
+		HDC		m_deviceContext;		//...Device context?
+		HGLRC	m_renderContext;		//Permanent Rendering Context		
 #endif
 
-		const OGLMesh*		boundMesh;
-		const OGLShader*	activeShader;
+		const OGLMesh*		m_boundMesh;
+		const OGLShader*	m_boundShader;
 	private:
-		bool initState;
+		bool m_initState;
 	};
 }

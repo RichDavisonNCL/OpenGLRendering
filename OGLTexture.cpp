@@ -14,15 +14,15 @@ using namespace NCL;
 using namespace NCL::Rendering;
 
 OGLTexture::OGLTexture()	{
-	glGenTextures(1, &texID);
+	glGenTextures(1, &m_texID);
 }
 
 OGLTexture::OGLTexture(GLuint texToOwn) {
-	texID = texToOwn;
+	m_texID = texToOwn;
 }
 
 OGLTexture::~OGLTexture()	{
-	glDeleteTextures(1, &texID);
+	glDeleteTextures(1, &m_texID);
 }
 
 UniqueOGLTexture OGLTexture::TextureFromData(char* data, uint32_t width, uint32_t height, uint32_t channels) {
@@ -40,7 +40,7 @@ UniqueOGLTexture OGLTexture::TextureFromData(char* data, uint32_t width, uint32_
 		case 4: sourceType = GL_RGBA; break;
 	}
 
-	glBindTexture(GL_TEXTURE_2D, tex->texID);
+	glBindTexture(GL_TEXTURE_2D, tex->m_texID);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, sourceType, GL_UNSIGNED_BYTE, data);
 

@@ -21,11 +21,11 @@ namespace NCL::Rendering {
 		void ReloadShader() override;
 
 		bool LoadSuccess() const {
-			return programValid == GL_TRUE;
+			return m_programValid == GL_TRUE;
 		}
 
 		int GetProgramID() const {
-			return programID;
+			return m_programID;
 		}	
 			
 		static void	PrintCompileLog(GLuint object);
@@ -36,9 +36,9 @@ namespace NCL::Rendering {
 	protected:
 		void	DeleteIDs();
 
-		GLuint	programID;
-		GLuint	shaderIDs[(int)ShaderStages::MAX_SIZE];
-		int		shaderValid[(int)ShaderStages::MAX_SIZE];
-		int		programValid;
+		GLuint	m_programID;
+		GLuint	m_shaderIDs[(int)ShaderStages::MAX_SIZE];
+		int		m_shaderValid[(int)ShaderStages::MAX_SIZE];
+		int		m_programValid;
 	};
 }

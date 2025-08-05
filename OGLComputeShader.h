@@ -19,7 +19,7 @@ namespace NCL::Rendering {
 		~OGLComputeShader();
 
 		GLuint GetProgramID() const {
-			return programID;
+			return m_programID;
 		}
 
 		void Bind() const;
@@ -30,13 +30,13 @@ namespace NCL::Rendering {
 		void Execute(unsigned int x, unsigned int y = 1, unsigned int z = 1) const;
 
 		Maths::Vector3i GetThreadGroupSize() const {
-			return threadsInGroup;
+			return m_threadsInGroup;
 		}
 
 	protected:
-		GLuint		shaderID;
-		GLuint		programID;
-		int			programValid;
-		Maths::Vector3i	threadsInGroup;
+		GLuint			m_shaderID;
+		GLuint			m_programID;
+		int				m_programValid;
+		Maths::Vector3i	m_threadsInGroup;
 	};
 }

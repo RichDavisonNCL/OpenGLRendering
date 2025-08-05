@@ -36,12 +36,12 @@ static void APIENTRY DebugCallback(GLenum source, GLenum type, GLuint id, GLenum
 #endif;
 
 OGLRenderer::OGLRenderer(Window& w) : RendererBase(w)	{
-	initState = false;
+	m_initState = false;
 #ifdef _WIN32
 	InitWithWin32(w);
 #endif
-	boundMesh		= nullptr;
-	activeShader	= nullptr;
+	m_boundMesh		= nullptr;
+	m_boundShader	= nullptr;
 
 	windowSize = w.GetScreenSize();
 }
@@ -73,7 +73,7 @@ void OGLRenderer::EndFrame()		{
 }
 
 void OGLRenderer::SwapBuffers()   {
-	::SwapBuffers(deviceContext);
+	::SwapBuffers(m_deviceContext);
 }
 
 void OGLRenderer::BindBufferAsUBO(const OGLBuffer& b, GLuint slotID) {
@@ -84,14 +84,14 @@ void OGLRenderer::BindBufferAsSSBO(const OGLBuffer& b, GLuint slotID) {
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, slotID, b.gpuID);
 }
 
-void OGLRenderer::UseShader(const OGLShader& oglShader) {
+void OGLRenderer::BindShader(const OGLShader& oglShader) {
 	if (!oglShader.LoadSuccess()) {
 		std::cout << __FUNCTION__ << ": shader has failed to load correctly!\n";
-		activeShader = nullptr;
+		m_boundShader = nullptr;
 		return;
 	}
 	glUseProgram(oglShader.GetProgramID());
-	activeShader = &oglShader;
+	m_boundShader = &oglShader;
 }
 
 void OGLRenderer::BindMesh(const OGLMesh& m) {
@@ -99,15 +99,15 @@ void OGLRenderer::BindMesh(const OGLMesh& m) {
 		std::cout << __FUNCTION__ << ": Mesh has not been uploaded!\n";
 	}
 	glBindVertexArray(m.GetVAO());
-	boundMesh = &m;
+	m_boundMesh = &m;
 }
 
 void OGLRenderer::DrawBoundMesh(int subLayer, int numInstances) {
-	if (!boundMesh) {
+	if (!m_boundMesh) {
 		std::cout << __FUNCTION__ << " has been called without a bound mesh!\n";
 		return;
 	}
-	if (!activeShader) {
+	if (!m_boundShader) {
 		std::cout << __FUNCTION__ << " has been called without a bound shader!\n";
 		return;
 	}
@@ -115,16 +115,16 @@ void OGLRenderer::DrawBoundMesh(int subLayer, int numInstances) {
 	int		count	= 0;
 	int		offset	= 0;
 
-	if (boundMesh->GetSubMeshCount() == 0) {
-		if (boundMesh->GetIndexCount() > 0) {
-			count = boundMesh->GetIndexCount();
+	if (m_boundMesh->GetSubMeshCount() == 0) {
+		if (m_boundMesh->GetIndexCount() > 0) {
+			count = m_boundMesh->GetIndexCount();
 		}
 		else{
-			count = boundMesh->GetVertexCount();
+			count = m_boundMesh->GetVertexCount();
 		}
 	}
 	else {
-		const SubMesh* m = boundMesh->GetSubMesh(subLayer);
+		const SubMesh* m = m_boundMesh->GetSubMesh(subLayer);
 		offset = m->start;
 		count  = m->count;
 	}
@@ -139,10 +139,10 @@ void OGLRenderer::DrawBoundMesh(int subLayer, int numInstances) {
 		GL_PATCHES
 	};
 
-	mode = primitiveLookup[boundMesh->GetPrimitiveType()];
+	mode = primitiveLookup[m_boundMesh->GetPrimitiveType()];
 
 	if (numInstances > 1) {
-		if (boundMesh->GetIndexCount() > 0) {
+		if (m_boundMesh->GetIndexCount() > 0) {
 			glDrawElementsInstanced(mode, count, GL_UNSIGNED_INT, (const GLvoid*)(offset * sizeof(unsigned int)), numInstances);
 		}
 		else {
@@ -150,7 +150,7 @@ void OGLRenderer::DrawBoundMesh(int subLayer, int numInstances) {
 		}
 	}
 	else {
-		if (boundMesh->GetIndexCount() > 0) {
+		if (m_boundMesh->GetIndexCount() > 0) {
 			glDrawElements(mode, count, GL_UNSIGNED_INT, (const GLvoid*)(offset * sizeof(unsigned int)));
 		}
 		else {
@@ -162,12 +162,12 @@ void OGLRenderer::DrawBoundMesh(int subLayer, int numInstances) {
 void OGLRenderer::BindTextureToShader(const OGLTexture& t, const std::string& uniform, int texUnit) const{
 	GLint texID = t.GetObjectID();
 
-	if (!activeShader) {
+	if (!m_boundShader) {
 		std::cout << __FUNCTION__ << " has been called without a bound shader!\n";
 		return;//Debug message time!
 	}
 	
-	GLuint slot = glGetUniformLocation(activeShader->GetProgramID(), uniform.c_str());
+	GLuint slot = glGetUniformLocation(m_boundShader->GetProgramID(), uniform.c_str());
 
 	if (slot < 0) {
 
@@ -184,7 +184,7 @@ void OGLRenderer::BindTextureToShader(const OGLTexture& t, const std::string& un
 void OGLRenderer::InitWithWin32(Window& w) {
 	Win32Code::Win32Window* realWindow = (Win32Code::Win32Window*)&w;
 
-	if (!(deviceContext = GetDC(realWindow->GetHandle()))) {
+	if (!(m_deviceContext = GetDC(realWindow->GetHandle()))) {
 		std::cout << __FUNCTION__ << " Failed to create window!\n";
 		return;
 	}
@@ -203,24 +203,24 @@ void OGLRenderer::InitWithWin32(Window& w) {
 	pfd.iLayerType		= PFD_MAIN_PLANE;
 
 	GLuint		PixelFormat;
-	if (!(PixelFormat = ChoosePixelFormat(deviceContext, &pfd))) {	// Did Windows Find A Matching Pixel Format for our PFD?
+	if (!(PixelFormat = ChoosePixelFormat(m_deviceContext, &pfd))) {	// Did Windows Find A Matching Pixel Format for our PFD?
 		std::cout << __FUNCTION__ << " Failed to choose a pixel format!\n";
 		return;
 	}
 
-	if (!SetPixelFormat(deviceContext, PixelFormat, &pfd)) {		// Are We Able To Set The Pixel Format?
+	if (!SetPixelFormat(m_deviceContext, PixelFormat, &pfd)) {		// Are We Able To Set The Pixel Format?
 		std::cout << __FUNCTION__ << " Failed to set a pixel format!\n";
 		return;
 	}
 
 	HGLRC		tempContext;		//We need a temporary OpenGL context to check for OpenGL 3.2 compatibility...stupid!!!
-	if (!(tempContext = wglCreateContext(deviceContext))) {	// Are We Able To get the temporary context?
+	if (!(tempContext = wglCreateContext(m_deviceContext))) {	// Are We Able To get the temporary context?
 		std::cout << __FUNCTION__ <<"  Cannot create a temporary context!\n";
 		wglDeleteContext(tempContext);
 		return;
 	}
 
-	if (!wglMakeCurrent(deviceContext, tempContext)) {	// Try To Activate The Rendering Context
+	if (!wglMakeCurrent(m_deviceContext, tempContext)) {	// Try To Activate The Rendering Context
 		std::cout << __FUNCTION__ << " Cannot set temporary context!\n";
 		wglDeleteContext(tempContext);
 		return;
@@ -261,12 +261,12 @@ void OGLRenderer::InitWithWin32(Window& w) {
 	//Everywhere else in the Renderers, we use function pointers provided by GLEW...but we can't initialise GLEW yet! So we have to use the 'Wiggle' API
 	//to get a pointer to the function that will create our OpenGL 3.2 context...
 	PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
-	renderContext = wglCreateContextAttribsARB(deviceContext, 0, attribs);
+	m_renderContext = wglCreateContextAttribsARB(m_deviceContext, 0, attribs);
 
 	// Check for the context, and try to make it the current rendering context
-	if (!renderContext || !wglMakeCurrent(deviceContext, renderContext)) {
+	if (!m_renderContext || !wglMakeCurrent(m_deviceContext, m_renderContext)) {
 		std::cout << __FUNCTION__ <<" Cannot set OpenGL 3 context!" << std::endl;	//It's all gone wrong!
-		wglDeleteContext(renderContext);
+		wglDeleteContext(m_renderContext);
 		wglDeleteContext(tempContext);
 		return;
 	}
@@ -284,13 +284,13 @@ void OGLRenderer::InitWithWin32(Window& w) {
 #endif
 
 	//If we get this far, everything's going well!
-	initState = true; 
+	m_initState = true; 
 
 	wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
 }
 
 void OGLRenderer::DestroyWithWin32() {
-	wglDeleteContext(renderContext);
+	wglDeleteContext(m_renderContext);
 }
 
 bool OGLRenderer::SetVerticalSync(VerticalSyncState s) {

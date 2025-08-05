@@ -1,4 +1,4 @@
-# Install script for directory: C:/Code/My Graphics Repos/CSC8502-OpenGL/OpenGLRendering
+# Install script for directory: C:/Uni SVNs/CSC802-2025/OpenGLRendering
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

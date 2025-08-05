@@ -17,33 +17,33 @@ OGLComputeShader::OGLComputeShader(const std::string& s)	{
 	string fileContents = "";
 	Assets::ReadTextFile(Assets::SHADERDIR + s, fileContents);
 
-	programID	= glCreateProgram();
-	shaderID	= glCreateShader(GL_COMPUTE_SHADER);
+	m_programID	= glCreateProgram();
+	m_shaderID	= glCreateShader(GL_COMPUTE_SHADER);
 
 	const char* stringData		= fileContents.c_str();
 	int			stringLength	= (int)fileContents.length();
-	glShaderSource(shaderID, 1, &stringData, &stringLength);
-	glCompileShader(shaderID);
-	glAttachShader(programID, shaderID);
+	glShaderSource(m_shaderID, 1, &stringData, &stringLength);
+	glCompileShader(m_shaderID);
+	glAttachShader(m_programID, m_shaderID);
 
-	glLinkProgram(programID);
-	glGetProgramiv(programID, GL_LINK_STATUS, &programValid);
+	glLinkProgram(m_programID);
+	glGetProgramiv(m_programID, GL_LINK_STATUS, &m_programValid);
 
 	std::cout << "Loading compute shader " << s << "\n";
-	if (programValid != GL_TRUE) {
+	if (m_programValid != GL_TRUE) {
 		std::cout << "Compute shader has failed!\n";
 	}
 	else {
 		std::cout << "Compute shader loaded!\n";		
-		glGetProgramiv(programID, GL_COMPUTE_WORK_GROUP_SIZE, (int*) & threadsInGroup);
+		glGetProgramiv(m_programID, GL_COMPUTE_WORK_GROUP_SIZE, (int*) & m_threadsInGroup);
 	}
-	OGLShader::PrintCompileLog(shaderID);
+	OGLShader::PrintCompileLog(m_shaderID);
 };
 
 OGLComputeShader::~OGLComputeShader()	{
-	glDetachShader(programID, shaderID);
-	glDeleteShader(shaderID);
-	glDeleteProgram(programID);
+	glDetachShader(m_programID, m_shaderID);
+	glDeleteShader(m_shaderID);
+	glDeleteProgram(m_programID);
 }
 
 void OGLComputeShader::Execute(unsigned int x, unsigned int y, unsigned int z) const {
@@ -51,7 +51,7 @@ void OGLComputeShader::Execute(unsigned int x, unsigned int y, unsigned int z) c
 }
 
 void OGLComputeShader::Bind() const {
-	glUseProgram(programID);
+	glUseProgram(m_programID);
 }
 
 void OGLComputeShader::Unbind() {

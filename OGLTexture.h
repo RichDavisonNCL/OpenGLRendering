@@ -32,9 +32,9 @@ namespace NCL::Rendering {
 			const std::string& zNegFile);
 
 		GLuint GetObjectID() const	{
-			return texID;
+			return m_texID;
 		}
 	protected:						
-		GLuint texID;
+		GLuint m_texID;
 	};
 }
