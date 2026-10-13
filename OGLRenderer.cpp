@@ -95,9 +95,9 @@ void OGLRenderer::BindShader(const OGLShader& oglShader) {
 }
 
 void OGLRenderer::BindMesh(const OGLMesh& m) {
-	if (m.GetVAO() == 0) {
-		std::cout << __FUNCTION__ << ": Mesh has not been uploaded!\n";
-	}
+	//if (m.GetVAO() == 0) {
+	//	std::cout << __FUNCTION__ << ": Mesh has not been uploaded!\n";
+	//}
 	glBindVertexArray(m.GetVAO());
 	m_boundMesh = &m;
 }
