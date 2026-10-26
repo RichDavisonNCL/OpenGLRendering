@@ -11,6 +11,9 @@ namespace NCL::Rendering {
 		GLuint gpuID;
 	};
 
+	using UniqueOGLBuffer = std::unique_ptr<class OGLBuffer>;
+	using SharedOGLBuffer = std::shared_ptr<class OGLBuffer>;
+
 	template <typename T>
 	struct StructuredOGLBuffer : OGLBuffer{
 		StructuredOGLBuffer(size_t count = 1) {
