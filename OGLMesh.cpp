@@ -32,9 +32,17 @@ void CreateVertexBuffer(GLuint& buffer, int byteCount, char* data) {
 	glBufferData(GL_ARRAY_BUFFER, byteCount, data, GL_STATIC_DRAW);
 }
 
-void OGLMesh::BindVertexAttribute(int attribSlot, int buffer, int bindingID, int elementCount, int elementSize, int elementOffset) {
+void OGLMesh::BindFloatVertexAttribute(int attribSlot, int buffer, int bindingID, int elementCount, int elementSize, int elementOffset) {
 	glEnableVertexAttribArray(attribSlot);
 	glVertexAttribFormat(attribSlot, elementCount, GL_FLOAT, false, 0);
+	glVertexAttribBinding(attribSlot, bindingID);
+	
+	glBindVertexBuffer(bindingID, buffer, elementOffset, elementSize);
+}
+
+void OGLMesh::BindIntegerVertexAttribute(int attribSlot, int buffer, int bindingID, int elementCount, int elementSize, int elementOffset) {
+	glEnableVertexAttribArray(attribSlot);
+	glVertexAttribIFormat(attribSlot, elementCount, GL_INT, 0);
 	glVertexAttribBinding(attribSlot, bindingID);
 
 	glBindVertexBuffer(bindingID, buffer, elementOffset, elementSize);
@@ -52,36 +60,46 @@ void OGLMesh::UploadToGPU(Rendering::RendererBase* renderer) {
 
 	if (!GetPositionData().empty()) {
 		CreateVertexBuffer(m_attributeBuffers[VertexAttribute::Positions], numVertices * sizeof(Vector3), (char*)GetPositionData().data());
-		BindVertexAttribute(VertexAttribute::Positions, m_attributeBuffers[VertexAttribute::Positions], VertexAttribute::Positions, 3, sizeof(Vector3), 0);
+		BindFloatVertexAttribute(VertexAttribute::Positions, m_attributeBuffers[VertexAttribute::Positions], VertexAttribute::Positions, 3, sizeof(Vector3), 0);
 	}
 
 	if (!GetColourData().empty()) {	//buffer colour data
 		CreateVertexBuffer(m_attributeBuffers[VertexAttribute::Colours], numVertices * sizeof(Vector4), (char*)GetColourData().data());
-		BindVertexAttribute(VertexAttribute::Colours, m_attributeBuffers[VertexAttribute::Colours], VertexAttribute::Colours, 4, sizeof(Vector4), 0);
+		BindFloatVertexAttribute(VertexAttribute::Colours, m_attributeBuffers[VertexAttribute::Colours], VertexAttribute::Colours, 4, sizeof(Vector4), 0);
 	}
 	if (!GetTextureCoordData().empty()) {	//Buffer texture data
 		CreateVertexBuffer(m_attributeBuffers[VertexAttribute::TextureCoords], numVertices * sizeof(Vector2), (char*)GetTextureCoordData().data());
-		BindVertexAttribute(VertexAttribute::TextureCoords, m_attributeBuffers[VertexAttribute::TextureCoords], VertexAttribute::TextureCoords, 2, sizeof(Vector2), 0);
+		BindFloatVertexAttribute(VertexAttribute::TextureCoords, m_attributeBuffers[VertexAttribute::TextureCoords], VertexAttribute::TextureCoords, 2, sizeof(Vector2), 0);
 	}
 
 	if (!GetNormalData().empty()) {	//Buffer normal data
 		CreateVertexBuffer(m_attributeBuffers[VertexAttribute::Normals], numVertices * sizeof(Vector3), (char*)GetNormalData().data());
-		BindVertexAttribute(VertexAttribute::Normals, m_attributeBuffers[VertexAttribute::Normals], VertexAttribute::Normals, 3, sizeof(Vector3), 0);
+		BindFloatVertexAttribute(VertexAttribute::Normals, m_attributeBuffers[VertexAttribute::Normals], VertexAttribute::Normals, 3, sizeof(Vector3), 0);
 	}
 
 	if (!GetTangentData().empty()) {	//Buffer tangent data
 		CreateVertexBuffer(m_attributeBuffers[VertexAttribute::Tangents], numVertices * sizeof(Vector4), (char*)GetTangentData().data());
-		BindVertexAttribute(VertexAttribute::Tangents, m_attributeBuffers[VertexAttribute::Tangents], VertexAttribute::Tangents, 4, sizeof(Vector4), 0);
+		BindFloatVertexAttribute(VertexAttribute::Tangents, m_attributeBuffers[VertexAttribute::Tangents], VertexAttribute::Tangents, 4, sizeof(Vector4), 0);
 	}
 
 	if (!GetSkinWeightData().empty()) {	//Skeleton weights
 		CreateVertexBuffer(m_attributeBuffers[VertexAttribute::JointWeights], numVertices * sizeof(Vector4), (char*)GetSkinWeightData().data());
-		BindVertexAttribute(VertexAttribute::JointWeights, m_attributeBuffers[VertexAttribute::JointWeights], VertexAttribute::JointWeights, 4, sizeof(Vector4), 0);
+		BindFloatVertexAttribute(VertexAttribute::JointWeights, m_attributeBuffers[VertexAttribute::JointWeights], VertexAttribute::JointWeights, 4, sizeof(Vector4), 0);
 	}
 
 	if (!GetSkinIndexData().empty()) {	//Skeleton joint indices
-		CreateVertexBuffer(m_attributeBuffers[VertexAttribute::JointIndices], numVertices * sizeof(Vector4), (char*)GetSkinIndexData().data());
-		BindVertexAttribute(VertexAttribute::JointIndices, m_attributeBuffers[VertexAttribute::JointIndices], VertexAttribute::JointIndices, 4, sizeof(Vector4), 0);
+		CreateVertexBuffer(m_attributeBuffers[VertexAttribute::JointIndices], numVertices * sizeof(Vector4i), (char*)GetSkinIndexData().data());
+		BindIntegerVertexAttribute(VertexAttribute::JointIndices, m_attributeBuffers[VertexAttribute::JointIndices], VertexAttribute::JointIndices, 4, sizeof(Vector4i), 0);
+	}
+
+	if (!GetGeneralVec4Data().empty()) {	//General purpose vec4s
+		CreateVertexBuffer(m_attributeBuffers[VertexAttribute::General_Vec4], numVertices * sizeof(Vector4), (char*)GetGeneralVec4Data().data());
+		BindFloatVertexAttribute(VertexAttribute::General_Vec4, m_attributeBuffers[VertexAttribute::General_Vec4], VertexAttribute::General_Vec4, 4, sizeof(Vector4), 0);
+	}
+
+	if (!GetGeneralIntegerData().empty()) {	//General purpose integers
+		CreateVertexBuffer(m_attributeBuffers[VertexAttribute::General_Integer], numVertices * sizeof(int), (char*)GetGeneralIntegerData().data());
+		BindIntegerVertexAttribute(VertexAttribute::General_Integer, m_attributeBuffers[VertexAttribute::General_Integer], VertexAttribute::General_Integer, 1, sizeof(int), 0);
 	}
 
 	if (!GetIndexData().empty()) {		//buffer index data
@@ -124,7 +142,7 @@ void OGLMesh::UpdateGPUBuffers(unsigned int startVertex, unsigned int vertexCoun
 	}
 
 	if (!GetSkinIndexData().empty()) {	//Skeleton joint indices
-		glBindBuffer(GL_ARRAY_BUFFER, m_attributeBuffers[VertexAttribute::TextureCoords]);
+		glBindBuffer(GL_ARRAY_BUFFER, m_attributeBuffers[VertexAttribute::JointIndices]);
 		glBufferSubData(GL_ARRAY_BUFFER, startVertex * sizeof(Vector4i), vertexCount * sizeof(Vector4i), (char*)&GetSkinIndexData()[startVertex]);
 	}
 	glBindBuffer(GL_ARRAY_BUFFER, 0);

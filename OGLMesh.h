@@ -26,7 +26,9 @@ namespace NCL::Rendering {
 
 	protected:
 		GLuint	GetVAO()			const { return m_vao;			}
-		void	BindVertexAttribute(int attribSlot, int bufferID, int bindingID, int elementCount, int elementSize, int elementOffset);
+		void	BindFloatVertexAttribute(int attribSlot, int bufferID, int bindingID, int elementCount, int elementSize, int elementOffset);
+
+		void	BindIntegerVertexAttribute(int attribSlot, int bufferID, int bindingID, int elementCount, int elementSize, int elementOffset);
 
 		GLuint m_vao;
 		GLuint m_attributeBuffers[VertexAttribute::MAX_ATTRIBUTES];
