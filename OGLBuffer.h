@@ -1,3 +1,6 @@
+#pragma once
+
+#include "glad/gl.h"
 
 namespace NCL::Rendering {
 	struct OGLBuffer {

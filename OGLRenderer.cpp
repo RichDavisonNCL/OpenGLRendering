@@ -11,9 +11,6 @@ License: MIT (see LICENSE file at the top of the source tree)
 #include "OGLTexture.h"
 #include "OGLBuffer.h"
 
-#include "SimpleFont.h"
-#include "TextureLoader.h"
-
 #include "Mesh.h"
 
 #ifdef _WIN32

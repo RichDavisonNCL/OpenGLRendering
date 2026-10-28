@@ -6,7 +6,6 @@ Contact:richgdavison@gmail.com
 License: MIT (see LICENSE file at the top of the source tree)
 */////////////////////////////////////////////////////////////////////////////
 #include "OGLTexture.h"
-#include "OGLRenderer.h"
 
 #include "TextureLoader.h"
 

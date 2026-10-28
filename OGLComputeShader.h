@@ -8,6 +8,11 @@ License: MIT (see LICENSE file at the top of the source tree)
 #pragma once
 #include "glad\gl.h"
 
+#include "../NCLCoreClasses/Maths.h"
+
+#include <memory>
+#include <string>
+
 namespace NCL::Rendering {
 
 	using UniqueOGLComputeShader = std::unique_ptr<class OGLComputeShader>;

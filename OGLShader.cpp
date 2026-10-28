@@ -8,6 +8,10 @@ License: MIT (see LICENSE file at the top of the source tree)
 #include "OGLShader.h"
 #include "Assets.h"
 
+#include <iostream>
+#include <set>
+#include <string>
+
 using namespace NCL;
 using namespace NCL::Rendering;
 
