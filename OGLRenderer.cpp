@@ -111,6 +111,7 @@ void OGLRenderer::DrawBoundMesh(int subLayer, int numInstances) {
 	GLuint	mode	= 0;
 	int		count	= 0;
 	int		offset	= 0;
+	int		base	= 0;
 
 	if (m_boundMesh->GetSubMeshCount() == 0) {
 		if (m_boundMesh->GetIndexCount() > 0) {
@@ -122,8 +123,9 @@ void OGLRenderer::DrawBoundMesh(int subLayer, int numInstances) {
 	}
 	else {
 		const SubMesh* m = m_boundMesh->GetSubMesh(subLayer);
-		offset = m->start;
-		count  = m->count;
+		offset	= m->start;
+		count	= m->count;
+		base	= m->base;
 	}
 
 	//Ordered the same as the GeometryPrimitive enum in Mesh
@@ -138,21 +140,11 @@ void OGLRenderer::DrawBoundMesh(int subLayer, int numInstances) {
 
 	mode = primitiveLookup[m_boundMesh->GetPrimitiveType()];
 
-	if (numInstances > 1) {
-		if (m_boundMesh->GetIndexCount() > 0) {
-			glDrawElementsInstanced(mode, count, GL_UNSIGNED_INT, (const GLvoid*)(offset * sizeof(unsigned int)), numInstances);
-		}
-		else {
-			glDrawArraysInstanced(mode, 0, count, numInstances);
-		}
+	if (m_boundMesh->GetIndexCount() > 0) {
+		glDrawElementsInstancedBaseVertexBaseInstance(mode, count, GL_UNSIGNED_INT, (const GLvoid*)(offset * sizeof(unsigned int)), numInstances, base, 0);
 	}
 	else {
-		if (m_boundMesh->GetIndexCount() > 0) {
-			glDrawElements(mode, count, GL_UNSIGNED_INT, (const GLvoid*)(offset * sizeof(unsigned int)));
-		}
-		else {
-			glDrawArrays(mode, 0, count);
-		}
+		glDrawArraysInstanced(mode, 0, count, numInstances);
 	}
 }
 
