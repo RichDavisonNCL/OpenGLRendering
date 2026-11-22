@@ -73,12 +73,66 @@ void OGLRenderer::SwapBuffers()   {
 	::SwapBuffers(m_deviceContext);
 }
 
-void OGLRenderer::BindBufferAsUBO(const OGLBuffer& b, GLuint slotID) {
+void OGLRenderer::BindBufferAsUBO(const OGLBuffer& b, GLuint slotID) const {
 	glBindBufferBase(GL_UNIFORM_BUFFER, slotID, b.gpuID);
 }
 
-void OGLRenderer::BindBufferAsSSBO(const OGLBuffer& b, GLuint slotID) {
+void OGLRenderer::BindBufferAsSSBO(const OGLBuffer& b, GLuint slotID) const {
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, slotID, b.gpuID);
+}
+
+void OGLRenderer::SendUniform(uint32_t slotID, const NCL::Maths::Matrix4& mat) const {
+	glUniformMatrix4fv(slotID, 1, false, (float*)&mat);
+}
+
+void OGLRenderer::SendUniform(const std::string& uniform, const NCL::Maths::Matrix4& mat) const {
+	const int location = glGetUniformLocation(m_boundShader->GetProgramID(), uniform.c_str());
+	glUniformMatrix4fv(location, 1, false, (float*)&mat);
+}
+
+void OGLRenderer::SendUniform(uint32_t slotID, const NCL::Maths::Vector4& vec) const {
+	glUniform4fv(slotID, 1, vec.array);
+}
+
+void OGLRenderer::SendUniform(const std::string& uniform, const NCL::Maths::Vector4& vec) const {
+	const int location = glGetUniformLocation(m_boundShader->GetProgramID(), uniform.c_str());
+	glUniform4fv(location, 1, vec.array);
+}
+
+void OGLRenderer::SendUniform(uint32_t slotID, const NCL::Maths::Vector3& vec) const {
+	glUniform3fv(slotID, 1, vec.array);
+}
+
+void OGLRenderer::SendUniform(const std::string& uniform, const NCL::Maths::Vector3& vec) const {
+	const int location = glGetUniformLocation(m_boundShader->GetProgramID(), uniform.c_str());
+	glUniform3fv(location, 1, vec.array);
+}
+
+void OGLRenderer::SendUniform(uint32_t slotID, const NCL::Maths::Vector2& vec) const {
+	glUniform2fv(slotID, 1, vec.array);
+}
+
+void OGLRenderer::SendUniform(const std::string& uniform, const NCL::Maths::Vector2& vec) const {
+	const int location = glGetUniformLocation(m_boundShader->GetProgramID(), uniform.c_str());
+	glUniform2fv(location, 1, vec.array);
+}
+
+void OGLRenderer::SendUniform(uint32_t slotID, float f) const {
+	glUniform1f(slotID, f);
+}
+
+void OGLRenderer::SendUniform(const std::string& uniform, float f) const {
+	const int location = glGetUniformLocation(m_boundShader->GetProgramID(), uniform.c_str());
+	glUniform1f(location, f);
+}
+
+void OGLRenderer::SendUniform(uint32_t slotID, int32_t i) const {
+	glUniform1i(slotID, i);
+}
+
+void OGLRenderer::SendUniform(const std::string& uniform, int32_t i) const {
+	const int location = glGetUniformLocation(m_boundShader->GetProgramID(), uniform.c_str());
+	glUniform1i(location, i);
 }
 
 void OGLRenderer::BindShader(const OGLShader& oglShader) {

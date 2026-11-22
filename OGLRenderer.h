@@ -50,8 +50,27 @@ namespace NCL::Rendering {
 		void BindShader(const OGLShader& s);
 		void BindTextureToShader(const OGLTexture& t, const std::string& uniform, int texUnit) const;
 		void BindMesh(const OGLMesh& m);
-		void BindBufferAsUBO(const OGLBuffer& b, uint32_t slotID);
-		void BindBufferAsSSBO(const OGLBuffer& b, uint32_t slotID);
+		void BindBufferAsUBO(const OGLBuffer& b, uint32_t slotID) const;
+		void BindBufferAsSSBO(const OGLBuffer& b, uint32_t slotID) const;
+
+
+		void SendUniform(uint32_t slotID, const NCL::Maths::Matrix4& mat) const;
+		void SendUniform(const std::string& uniform, const NCL::Maths::Matrix4& mat) const;
+
+		void SendUniform(uint32_t slotID, const NCL::Maths::Vector4& vec) const;
+		void SendUniform(const std::string& uniform, const NCL::Maths::Vector4& vec) const;
+
+		void SendUniform(uint32_t slotID, const NCL::Maths::Vector3& vec) const;
+		void SendUniform(const std::string& uniform, const NCL::Maths::Vector3& vec) const;
+
+		void SendUniform(uint32_t slotID, const NCL::Maths::Vector2& vec) const;
+		void SendUniform(const std::string& uniform, const NCL::Maths::Vector2& vec) const;
+
+		void SendUniform(uint32_t slotID, float f) const;
+		void SendUniform(const std::string& uniform, float f) const;
+
+		void SendUniform(uint32_t slotID, int32_t i) const;
+		void SendUniform(const std::string& uniform, int32_t i) const;
 
 		void DrawBoundMesh(int subLayer = 0, int numInstances = 1);
 #ifdef _WIN32
