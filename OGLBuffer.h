@@ -1,9 +1,9 @@
 #pragma once
-
+#include "../NCLCoreClasses/Buffer.h"
 #include "glad/gl.h"
 
 namespace NCL::Rendering {
-	struct OGLBuffer {
+	struct OGLBuffer : NCL::Rendering::Buffer{
 		OGLBuffer() {
 			glGenBuffers(1, &gpuID);
 		}
