@@ -59,7 +59,7 @@ UniqueOGLTexture OGLTexture::TextureFromFile(const std::string&name) {
 	uint32_t height		= 0;
 	uint32_t channels	= 0;
 	uint32_t flags		= 0;
-	TextureLoader::LoadTexture(name, texData, width, height, channels, flags);  
+	bool loaded = TextureLoader::LoadTexture(name, texData, width, height, channels, flags);  
 
 	UniqueOGLTexture glTex = TextureFromData(texData, width, height, channels);
 
